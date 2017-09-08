@@ -92,4 +92,4 @@ Another version of parallelism in which a single parallel loop with a set number
 meter would only have one progress bar like the original package but would work on parallel loops instead of purely serial ones.
 
 ## Credits
-Structure inspired by the package ProgressMeter.jl.  Basic parallel functionality created by Jason Eckstein and Michael Jin.
+Structure inspired by the package ProgressMeter.jl.  Basic parallel functionality created by Jason Eckstein @jekyllstein and Michael Jin @mikhail-j
