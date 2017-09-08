@@ -1,5 +1,4 @@
-using ParallelProgressMeter
-using Base.Test
+include("PMAP_tests.jl")
 
-# write your own tests here
-@test 1 == 2
+println("")
+println("All tests complete")
