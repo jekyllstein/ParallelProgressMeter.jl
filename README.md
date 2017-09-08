@@ -8,16 +8,16 @@
 
 Parallel progress meter for long running serial tasks being executed in a parallel for loop in Julia
 
-##Usage
+## Usage
 
-###Progress for N serial tasks with a pre-determined number of steps for each task
+### Progress for N serial tasks with a pre-determined number of steps for each task
 
 The current implementation only works for @parallel for loops that execute some function
 serialTask() with certain required inputs.  A progress percentage will be shown for each 
 parallel task running.  An example of how to use it copied from PMAP_tests.jl and executes
 one serial task for each CPU core:
-
-```
+ 
+```julia
 using ParallelProgressMeter
 
 if nprocs() <= 1
@@ -83,7 +83,7 @@ end
 close(c)
 ```
 
-##Notes
+## Notes
 The current package can only be used in the narrow use case shown above and used for package testing.  Future plans include streamlining
 the initialization process to one step, simplifying the requirements on serialTask to push updates to the progress array, and adding more 
 display options.
@@ -91,5 +91,5 @@ display options.
 Another version of parallelism in which a single parallel loop with a set number of steps is possible but not yet implemented.  That type of 
 meter would only have one progress bar like the original package but would work on parallel loops instead of purely serial ones.
 
-##Credits
+## Credits
 Structure inspired by the package ProgressMeter.jl.  Basic parallel functionality created by Jason Eckstein and Michael Jin.
