@@ -1,4 +1,4 @@
-include("PMAP_tests.jl")
+include("pfor_init_test.jl")
 
 println("")
 println("All tests complete")

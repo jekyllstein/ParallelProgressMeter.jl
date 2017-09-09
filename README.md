@@ -18,23 +18,27 @@ Pkg.clone("https://github.com/jekyllstein/ParallelProgressMeter.jl")
 
 The current implementation only works for @parallel for loops that execute some function
 serialTask() with certain required inputs.  A progress percentage will be shown for each 
-parallel task running.  An example of how to use it copied from PMAP_tests.jl and executes
-one serial task for each CPU core:
+parallel task running as seen in the gif below:
 
 ![alt text](img/ParallelProgressMeterTest.gif "Package Test Running")
- 
+
+The script below demonstartes initializing the package, adding workers to julia, defining a 
+serial task function, and executing it in parallel with the active progress monitor:
+
 ```julia
 using ParallelProgressMeter
 
-if nprocs() <= 1
-    addprocs(Sys.CPU_CORES)
-    println(string("Added ", nprocs()-1, " workers based on available CPU cores"))
-end
+#add one worker for each parallel task.  The test suite will include
+#cases where the number of tasks exceeds the available workers.
+numTasks = 4
+addprocs(numTasks)
 
-#the parallel loop will execute one fewer tasks than the available cores
-#the remaining core will in parallel monitor the progress of the others and
-#accumulate any results
-numTasks = nprocs()-1
+#Note that the function is defined below with an @everything macro tag after 
+#the additional workers were added, ensuring it is available on all workers.
+
+#number of times each task will iterate, in this case every task 
+#will perform 1e8 iterations
+params = round(Int, 1e8)*ones(Int64, numTasks)
 
 #define a generic serial task that will be run in parallel once for each CPU core
 #in order to push updates to the progressArray each serial task must have access to
@@ -60,26 +64,8 @@ numTasks = nprocs()-1
     return a
 end
 
-#create a remote channel to listen for updates
-c = RemoteChannel()
-
-#number of times each task will iterate, in this case every task 
-#will perform 1e8 iterations
-params = round(Int, 1e8)*ones(Int64, numTasks)
-
-
-# @parallel (vcat) for i = 1:nprocs()-1
-#     serialTask(1, c, i, 1.0, true)
-# end
-
-#define array to track the progress of each serial task
-progressArray = zeros(Float64, numTasks)
-
-#initialize update monitor that will record and print the progress of
-#each serial task
-@async updateProgress!(c, progressArray, 1.0)
-
-println(string("Starting parallel for loop test across ", numTasks, " workers"))
+#initiaalize parallel progress monitor and save remote channel
+c = initializeProgress(numTasks)
 
 #run parallel for loop with progress meter
 @parallel (vcat) for i = 1:numTasks
@@ -90,9 +76,16 @@ close(c)
 ```
 
 ## Notes
-The current package can only be used in the narrow use case shown above and used for package testing.  Future plans include streamlining
-the initialization process to one step, simplifying the requirements on serialTask to push updates to the progress array, and adding more 
-display options.
+The initialization function is the only exported part of the package and returns a remote channel which must be passed into
+the loop function.  In cases where numTasks exceeds or equals the available workers, you will notice one progress bar remaining
+at 0.0% until all other tasks are complete as expected by not having enough workers to launch every task in parallel.  
+
+## Future Plans
+The requirements on the serialTask inner function should be streamlined with another exported update!() function that pushes
+to the remote channel.  Alternatively, a macro can be defined that automatically initializes the monitor and runs serialTask 
+in parallel for a specified number of tasks.  The loop construction should be linked to the initialization because the program
+only makes sense if the numTasks is used for both.  A macro could also eliminate the need to close the remote channel created 
+by the initializer as it could be created, passed, and closed automatically
 
 Another version of parallelism in which a single parallel loop with a set number of steps is possible but not yet implemented.  That type of 
 meter would only have one progress bar like the original package but would work on parallel loops instead of purely serial ones.
