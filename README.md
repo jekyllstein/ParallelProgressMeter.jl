@@ -1,6 +1,6 @@
 # ParallelProgressMeter
 
-[![Build Status](https://travis-ci.org/jekyllstein/ParallelProgressMeter.jl.svg?branch=master)](https://travis-ci.org/jekyllstein/ParallelProgressMeter.jl) [![Coverage Status](https://coveralls.io/repos/jekyllstein/ParallelProgressMeter.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/jekyllstein/ParallelProgressMeter.jl?branch=master) [![codecov.io](http://codecov.io/github/jekyllstein/ParallelProgressMeter.jl/coverage.svg?branch=master)](http://codecov.io/github/jekyllstein/ParallelProgressMeter.jl?branch=master)
+[![Build Status](https://travis-ci.org/jekyllstein/ParallelProgressMeter.jl.svg)](https://travis-ci.org/jekyllstein/ParallelProgressMeter.jl) [![Coverage Status](https://coveralls.io/repos/jekyllstein/ParallelProgressMeter.jl/badge.svg)](https://coveralls.io/github/jekyllstein/ParallelProgressMeter.jl) [![codecov.io](http://codecov.io/github/jekyllstein/ParallelProgressMeter.jl/coverage.svg)](http://codecov.io/github/jekyllstein/ParallelProgressMeter.jl)
 
 Parallel progress meter for long running serial tasks being executed in a parallel for loop in Julia
 
@@ -48,23 +48,17 @@ params = round(Int, 1e8)*ones(Int64, numTasks)
     t = time()
     for i = 1:N
         a += rand()
-        
-        #if show && (((time() - t) > delay) || (i == N))
         if show && (((time() - t) > delay) || ((i == N) && (i != 1)))
         
             put!(c, (id, 100*i/N))
             #println(string("Progress = ", round(100*i/N, 2), "%"))
             t  = time()
-        end
-        
+        end       
     end
-    #put!(c, (id, 100.0))
-    
-
     return a
 end
 
-#initiaalize parallel progress monitor and save remote channel
+#initialize parallel progress monitor and save remote channel
 c = initializeProgress(numTasks)
 
 #run parallel for loop with progress meter
