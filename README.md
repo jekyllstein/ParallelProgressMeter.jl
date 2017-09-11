@@ -42,44 +42,38 @@ params = round(Int, 1e8)*ones(Int64, numTasks)
 
 #define a generic serial task that will be run in parallel once for each CPU core
 #in order to push updates to the progressArray each serial task must have access to
-#the remote channel listening for updates as be tagged with it's id in the parallel loop
-@everywhere function serialTask(N::Int64, c::RemoteChannel{Channel{Any}}, id, delay::Float64, show = false)
+#the shared array keeping track of progress and take the task number as input
+@everywhere function serialTask1(N::Int64, taskNum::Int64, p::SharedArray{Int64, 1})
     a = 0.0
-    t = time()
     for i = 1:N
         a += rand()
-        if show && (((time() - t) > delay) || ((i == N) && (i != 1)))
-        
-            put!(c, (id, 100*i/N))
-            #println(string("Progress = ", round(100*i/N, 2), "%"))
-            t  = time()
-        end       
+        p[taskNum] += 1
     end
     return a
 end
 
-#initialize parallel progress monitor and save remote channel
-c = initializeProgress(numTasks)
+#initialize parallel progress monitor and save shared array
+p = initializeProgress(numTasks, params)
 
 #run parallel for loop with progress meter
 @parallel (vcat) for i = 1:numTasks
-    serialTask(params[i], c, i, 1.0, true)
+    serialTask1(params[i], i, p)
 end
-
-close(c)
 ```
 
 ## Notes
-The initialization function is the only exported part of the package and returns a remote channel which must be passed into
+The initialization function is the only exported part of the package and returns a shared array which must be passed into
 the loop function.  In cases where numTasks exceeds or equals the available workers, you will notice one progress bar remaining
-at 0.0% until all other tasks are complete as expected by not having enough workers to launch every task in parallel.  
+at 00.00% until all other tasks are complete as expected by not having enough workers to launch every task in parallel.
+
+The serialTask function requires two inputs to work with the progress meter as well as a line of code inside the loop that triggers
+whith each iteration.  The two inputs are the task number which identifies this task in the parallel loop as well as the initialized
+shared array.  The line inside the loop simply increments the shared array by 1 in the element corresponding to the task number.    
 
 ## Future Plans
-The requirements on the serialTask inner function should be streamlined with another exported update!() function that pushes
-to the remote channel.  Alternatively, a macro can be defined that automatically initializes the monitor and runs serialTask 
-in parallel for a specified number of tasks.  The loop construction should be linked to the initialization because the program
-only makes sense if the numTasks is used for both.  A macro could also eliminate the need to close the remote channel created 
-by the initializer as it could be created, passed, and closed automatically
+Requiring serialTask to take two inputs and insert a line of code in the inner loop is cluncky.  Alternatively a macro could be defined that automatically initializes the monitor and runs a code block that contains a loop wrapping it in an outer parallel loop.  The macro could insert the update code inside the 
+inner loop with the correct task number.  The parallel loop construction should be linked to the initialization because the program
+only makes sense if the numTasks is used for both.
 
 Another version of parallelism in which a single parallel loop with a set number of steps is possible but not yet implemented.  That type of 
 meter would only have one progress bar like the original package but would work on parallel loops instead of purely serial ones.

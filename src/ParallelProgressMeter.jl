@@ -2,7 +2,7 @@ __precompile__()
 
 module ParallelProgressMeter
 
-export initializeProgress, next!
+export initializeProgress
 
 #copied from https://github.com/timholy/ProgressMeter.jl
 function move_cursor_up_while_clearing_lines(io, numlinesup)
