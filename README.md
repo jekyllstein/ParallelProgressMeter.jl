@@ -87,7 +87,7 @@ a = @parallel (+) for i = 1:N
 end
 ```
 
-##Notes
+## Notes
 ### Multiple serial tasks
 The initialization function is the only exported part of the package and returns a shared array which must be passed into
 the loop function.  In cases where numTasks exceeds or equals the available workers, you will notice one progress bar remaining
