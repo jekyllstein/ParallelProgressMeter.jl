@@ -1,4 +1,4 @@
-include("PMAP_tests.jl")
+include("multiTask_initialize.jl")
 
 println("")
 println("All tests complete")

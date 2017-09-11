@@ -1,6 +1,6 @@
 # ParallelProgressMeter
 
-[![Build Status](https://travis-ci.org/jekyllstein/ParallelProgressMeter.jl.svg)](https://travis-ci.org/jekyllstein/ParallelProgressMeter.jl) [![Coverage Status](https://coveralls.io/repos/jekyllstein/ParallelProgressMeter.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/jekyllstein/ParallelProgressMeter.jl?branch=master) [![codecov.io](http://codecov.io/github/jekyllstein/ParallelProgressMeter.jl/coverage.svg?branch=master)](http://codecov.io/github/jekyllstein/ParallelProgressMeter.jl?branch=master)
+[![Build Status](https://travis-ci.org/jekyllstein/ParallelProgressMeter.jl.svg)](https://travis-ci.org/jekyllstein/ParallelProgressMeter.jl) [![Coverage Status](https://coveralls.io/repos/jekyllstein/ParallelProgressMeter.jl/badge.svg)](https://coveralls.io/github/jekyllstein/ParallelProgressMeter.jl) [![codecov.io](http://codecov.io/github/jekyllstein/ParallelProgressMeter.jl/coverage.svg)](http://codecov.io/github/jekyllstein/ParallelProgressMeter.jl)
 
 Parallel progress meter for long running serial tasks being executed in a parallel for loop in Julia
 
@@ -18,81 +18,62 @@ Pkg.clone("https://github.com/jekyllstein/ParallelProgressMeter.jl")
 
 The current implementation only works for @parallel for loops that execute some function
 serialTask() with certain required inputs.  A progress percentage will be shown for each 
-parallel task running.  An example of how to use it copied from PMAP_tests.jl and executes
-one serial task for each CPU core:
+parallel task running as seen in the gif below:
 
 ![alt text](img/ParallelProgressMeterTest.gif "Package Test Running")
- 
+
+The script below demonstartes initializing the package, adding workers to julia, defining a 
+serial task function, and executing it in parallel with the active progress monitor:
+
 ```julia
 using ParallelProgressMeter
 
-if nprocs() <= 1
-    addprocs(Sys.CPU_CORES)
-    println(string("Added ", nprocs()-1, " workers based on available CPU cores"))
-end
+#add one worker for each parallel task.  The test suite will include
+#cases where the number of tasks exceeds the available workers.
+numTasks = 4
+addprocs(numTasks)
 
-#the parallel loop will execute one fewer tasks than the available cores
-#the remaining core will in parallel monitor the progress of the others and
-#accumulate any results
-numTasks = nprocs()-1
-
-#define a generic serial task that will be run in parallel once for each CPU core
-#in order to push updates to the progressArray each serial task must have access to
-#the remote channel listening for updates as be tagged with it's id in the parallel loop
-@everywhere function serialTask(N::Int64, c::RemoteChannel{Channel{Any}}, id, delay::Float64, show = false)
-    a = 0.0
-    t = time()
-    for i = 1:N
-        a += rand()
-        
-        #if show && (((time() - t) > delay) || (i == N))
-        if show && (((time() - t) > delay) || ((i == N) && (i != 1)))
-        
-            put!(c, (id, 100*i/N))
-            #println(string("Progress = ", round(100*i/N, 2), "%"))
-            t  = time()
-        end
-        
-    end
-    #put!(c, (id, 100.0))
-    
-
-    return a
-end
-
-#create a remote channel to listen for updates
-c = RemoteChannel()
+#Note that the function is defined below with an @everything macro tag after 
+#the additional workers were added, ensuring it is available on all workers.
 
 #number of times each task will iterate, in this case every task 
 #will perform 1e8 iterations
 params = round(Int, 1e8)*ones(Int64, numTasks)
 
+#define a generic serial task that will be run in parallel once for each CPU core
+#in order to push updates to the progressArray each serial task must have access to
+#the shared array keeping track of progress and take the task number as input
+@everywhere function serialTask1(N::Int64, taskNum::Int64, p::SharedArray{Int64, 1})
+    a = 0.0
+    for i = 1:N
+        a += rand()
+        p[taskNum] += 1
+    end
+    return a
+end
 
-# @parallel (vcat) for i = 1:nprocs()-1
-#     serialTask(1, c, i, 1.0, true)
-# end
-
-#define array to track the progress of each serial task
-progressArray = zeros(Float64, numTasks)
-
-#initialize update monitor that will record and print the progress of
-#each serial task
-@async updateProgress!(c, progressArray, 1.0)
-
-println(string("Starting parallel for loop test across ", numTasks, " workers"))
+#initialize parallel progress monitor and save shared array
+p = initializeProgress(numTasks, params)
 
 #run parallel for loop with progress meter
 @parallel (vcat) for i = 1:numTasks
-    serialTask(params[i], c, i, 1.0, true)
+    serialTask1(params[i], i, p)
 end
-
-close(c)
 ```
 
 ## Notes
-The current package can only be used in the narrow use case shown above and used for package testing.  Future plans include streamlining
-the initialization process to one step, simplifying the requirements on serialTask to push updates to the progress array, and adding more 
-display options.
+The initialization function is the only exported part of the package and returns a shared array which must be passed into
+the loop function.  In cases where numTasks exceeds or equals the available workers, you will notice one progress bar remaining
+at 00.00% until all other tasks are complete as expected by not having enough workers to launch every task in parallel.
+
+The serialTask function requires two inputs to work with the progress meter as well as a line of code inside the loop that triggers
+whith each iteration.  The two inputs are the task number which identifies this task in the parallel loop as well as the initialized
+shared array.  The line inside the loop simply increments the shared array by 1 in the element corresponding to the task number.    
+
+## Future Plans
+Requiring serialTask to take two inputs and insert a line of code in the inner loop is cluncky.  Alternatively a macro could be defined that automatically initializes the monitor and runs a code block that contains a loop wrapping it in an outer parallel loop.  The macro could insert the update code inside the 
+inner loop with the correct task number.  The parallel loop construction should be linked to the initialization because the program
+only makes sense if the numTasks is used for both.
 
 Another version of parallelism in which a single parallel loop with a set number of steps is possible but not yet implemented.  That type of 
 meter would only have one progress bar like the original package but would work on parallel loops instead of purely serial ones.
