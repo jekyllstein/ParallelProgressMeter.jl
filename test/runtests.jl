@@ -1,4 +1,4 @@
-include("pfor_init_test.jl")
+include("multiTask_initialize.jl")
 
 println("")
 println("All tests complete")
