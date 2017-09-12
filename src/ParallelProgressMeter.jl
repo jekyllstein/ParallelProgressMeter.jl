@@ -48,10 +48,10 @@ function monitorProgress!(progressArray::SharedArray{Int64,1}, numArray::Array{I
     t = time()
     startTime = t
     for a in 1:length(progressArray)
-        println(string("Progress of task ", lpad(a, 2, 0), " is 00.00 %     ETA: NA"))
+        println(string("Progress of task ", lpad(a, 2, 0), " is 0.000 %     ETA: NA"))
     end
     
-    currentProgress = round(100*progressArray./numArray, 2)
+    currentProgress = round.(100*progressArray./numArray, 2)
     completeProgress = fill!(similar(currentProgress), 100)
     deltaProgress = fill!(similar(currentProgress), 0)
     lastProgress = currentProgress
