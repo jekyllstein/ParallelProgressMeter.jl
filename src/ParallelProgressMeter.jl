@@ -59,12 +59,12 @@ function monitorProgress!(progressArray::SharedArray{Int64,1}, numArray::Array{I
     message(a) = println(string("Progress of task ", lpad(a, 2, 0), " is ", rpad(currentProgress[a], 5, 0), "%     ETA: ", calcETA(currentProgress[a], deltaProgress[a], delay)))
     
     while currentProgress != completeProgress   
-        currentProgress = round(100*progressArray./numArray, 2)
+        @inbounds currentProgress = round(100*progressArray./numArray, 2)
         if (time() - t) > delay
-            deltaProgress = currentProgress - lastProgress
+            deltaProgress = currentProgress .- lastProgress
             move_cursor_up_while_clearing_lines(STDOUT, length(progressArray))
             for a in 1:length(progressArray)
-                message(a)
+                @inbounds message(a)
             end
             t = time()
             lastProgress = currentProgress
@@ -90,9 +90,9 @@ function monitorProgress!(progressArray::SharedArray{Int64,1}, N::Int64, delay::
     lastProgress = currentProgress
     
     while currentProgress != 100   
-        currentProgress = round(100*sum(progressArray)/N, 2)
+        @inbounds currentProgress = round(100*sum(progressArray)/N, 2)
         if (time() - t) > delay
-            deltaProgress = currentProgress - lastProgress
+            @inbounds deltaProgress = currentProgress - lastProgress
             move_cursor_up_while_clearing_lines(STDOUT, 1)
             println(string("Progress is ", rpad(currentProgress, 5, 0), "%     ETA: ", calcETA(currentProgress, deltaProgress, delay)))
             t = time()
@@ -159,7 +159,7 @@ end
 
 function next!(p::Tuple{SharedArray{Int64,1},Dict{Int64,Int64}})
 #updates progress array during each step of a parallel for loop with a single task
-    p[1][p[2][myid()]] += 1
+    @inbounds p[1][p[2][myid()]] += 1
 end
 
 end # module

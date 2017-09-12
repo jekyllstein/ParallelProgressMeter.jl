@@ -25,7 +25,7 @@ println("")
     a = 0.0
     for i = 1:N
         a += rand()
-        p[taskNum] += 1
+        @inbounds p[taskNum] += 1
     end
     return a
 end
@@ -73,7 +73,7 @@ println("")
 
 println("Single task run without progress meter")
 @time a = @parallel (+) for i = 1:N
-    tmp = rand()
+    rand()
 end
 
 println("")
@@ -94,7 +94,7 @@ println("")
     a = 0.0
     for i = 1:N
         a += rand()
-        p[taskNum] += 1
+        @inbounds p[taskNum] += 1
     end
     return a
 end
@@ -162,7 +162,7 @@ println("")
     a = 0.0
     for i = 1:N
         a += rand()
-        p[taskNum] += 1
+        @inbounds p[taskNum] += 1
     end
     return a
 end

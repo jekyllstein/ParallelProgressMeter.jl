@@ -19,7 +19,7 @@ Pkg.clone("https://github.com/jekyllstein/ParallelProgressMeter.jl")
 The following functions are used for @parallel for loops that execute some function serialTask() in parallel.  
 A progress percentage and ETA will be shown for each parallel task running as seen in the gif below:
 
-![alt text](img/ParallelProgressMeterTest.gif "Package Test Running")
+![alt text](img/multiTask_test.gif "Multiple Serial Tasks in Parallel")
 
 The script below demonstartes initializing the package, adding workers to julia, defining a 
 serial task function, and executing it in parallel with the active progress monitor:
@@ -63,18 +63,20 @@ end
 ### Progress for 1 parallel tasks with a pre-determined number of steps across multiple workers
 
 The following functions are used for a single @parallel for loop with an inner code block that can be
-run in parallel.  A single progress percentage and ETA will be shown for the task.
+run in parallel.  A single progress percentage and ETA will be shown for the task as seen in the gif below:
+
+![alt text](img/singleTaskTest.gif "Single Parallel Task")
 
 The script below demonstrates adding workers to julia, initializing the package on multiple workers, initializing
 the monitor and inserting the next! iterator into the loop body:
 
 ```julia
-addprocs(3)
+addprocs(4)
 @everywhere using ParallelProgressMeter
 
-##-----------------------------------Parameters for single task test--------------------------------------
+##--------------------------Parameters for single task test-------------------
 N = Int64(5e8)
-#---------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 
 p = initializeProgress(N)
 
