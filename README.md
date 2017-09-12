@@ -1,6 +1,6 @@
 # ParallelProgressMeter
 
-[![Build Status](https://travis-ci.org/jekyllstein/ParallelProgressMeter.jl.svg)](https://travis-ci.org/jekyllstein/ParallelProgressMeter.jl) [![Coverage Status](https://coveralls.io/repos/github/jekyllstein/ParallelProgressMeter.jl/badge.svg?branch=master)](https://coveralls.io/github/jekyllstein/ParallelProgressMeter.jl?) [![codecov.io](http://codecov.io/github/jekyllstein/ParallelProgressMeter.jl/coverage.svg)](http://codecov.io/github/jekyllstein/ParallelProgressMeter.jl)
+[![Build Status](https://travis-ci.org/jekyllstein/ParallelProgressMeter.jl.svg)](https://travis-ci.org/jekyllstein/ParallelProgressMeter.jl) [![Coverage Status](https://coveralls.io/repos/github/jekyllstein/ParallelProgressMeter.jl/badge.svg)](https://coveralls.io/github/jekyllstein/ParallelProgressMeter.jl) [![codecov.io](http://codecov.io/github/jekyllstein/ParallelProgressMeter.jl/coverage.svg)](http://codecov.io/github/jekyllstein/ParallelProgressMeter.jl)
 
 Parallel progress meter for long running serial tasks being executed in a parallel for loop in Julia
 
