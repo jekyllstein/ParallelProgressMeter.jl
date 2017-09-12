@@ -4,12 +4,19 @@ module ParallelProgressMeter
 
 export initializeProgress, next!
 
-#copied from https://github.com/timholy/ProgressMeter.jl
+#------ move_cursor_up_while_clearing_lines() and printover() copied from https://github.com/timholy/ProgressMeter.jl with the following license------------------------
+# The MIT License (MIT)
+# Copyright (c) 2013 Timothy E. Holy
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 function move_cursor_up_while_clearing_lines(io, numlinesup)
     [print(io, "\u1b[1G\u1b[K\u1b[A") for _ in 1:numlinesup]
 end
-
-#copied from https://github.com/timholy/ProgressMeter.jl
 function printover(io::IO, s::AbstractString, color::Symbol = :color_normal)
     if isdefined(Main, :IJulia) || isdefined(Main, :ESS) || isdefined(Main, :Atom)
         print(io, "\r" * s)
@@ -19,6 +26,7 @@ function printover(io::IO, s::AbstractString, color::Symbol = :color_normal)
         print(io, "\u1b[K")    # clear the rest of the line
     end
 end
+#---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 function convertSeconds(s::Float64)
 #convert a time in seconds into the format HH:MM:SS
