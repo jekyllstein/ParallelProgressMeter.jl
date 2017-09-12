@@ -83,7 +83,7 @@ function monitorProgress!(progressArray::SharedArray{Int64,1}, N::Int64, delay::
 #percent and ETA.  Stops when the progress reaches 100% 
     t = time()
     startTime = t
-    println(string("Progress is 0.000 %     ETA: NA"))
+    print(string("Progress is 0.000 %     ETA: NA"))
     
     currentProgress = round(100*sum(progressArray)/N, 2)
     deltaProgress = 0.0
@@ -94,13 +94,14 @@ function monitorProgress!(progressArray::SharedArray{Int64,1}, N::Int64, delay::
         if (time() - t) > delay
             @inbounds deltaProgress = currentProgress - lastProgress
             move_cursor_up_while_clearing_lines(STDOUT, 1)
-            println(string("Progress is ", rpad(currentProgress, 5, 0), "%     ETA: ", calcETA(currentProgress, deltaProgress, delay)))
+            printover(STDOUT, string("Progress is ", rpad(currentProgress, 5, 0), "%     ETA: ", calcETA(currentProgress, deltaProgress, delay)))
             t = time()
             lastProgress = currentProgress
         end
     end
-    move_cursor_up_while_clearing_lines(STDOUT, 1)
-    println(string("Progress is ", rpad(currentProgress, 5, 0), "%     ETA: ", calcETA(currentProgress, deltaProgress, delay)))
+    #move_cursor_up_while_clearing_lines(STDOUT, 1)
+    printover(STDOUT, string("Progress is ", rpad(currentProgress, 5, 0), "%     ETA: ", calcETA(currentProgress, deltaProgress, delay)))
+    println("")
     println(string("Parallel progress monitor complete after ", convertSeconds(time() - startTime)))
     println("")
 end
