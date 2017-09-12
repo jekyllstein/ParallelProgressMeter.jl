@@ -93,7 +93,7 @@ function monitorProgress!(progressArray::SharedArray{Int64,1}, N::Int64, delay::
         @inbounds currentProgress = round(100*sum(progressArray)/N, 2)
         if (time() - t) > delay
             @inbounds deltaProgress = currentProgress - lastProgress
-            move_cursor_up_while_clearing_lines(STDOUT, 1)
+            #move_cursor_up_while_clearing_lines(STDOUT, 1)
             printover(STDOUT, string("Progress is ", rpad(currentProgress, 5, 0), "%     ETA: ", calcETA(currentProgress, deltaProgress, delay)))
             t = time()
             lastProgress = currentProgress
